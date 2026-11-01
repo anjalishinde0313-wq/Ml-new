@@ -1,0 +1,57 @@
+# Experiment 01: Basic Feature Engineering Techniques
+
+# 1. Import libraries
+import pandas as pd
+import numpy as np
+import seaborn as sns
+
+from sklearn.preprocessing import LabelEncoder, StandardScaler
+
+# 2. Load Titanic dataset
+df = sns.load_dataset('titanic')
+
+# 3. Display first five records
+print("First Five Records:")
+print(df.head())
+
+# 4. Check dataset information
+print("\nDataset Information:")
+print(df.info())
+
+# 5. Check missing values
+print("\nMissing Values Before Cleaning:")
+print(df.isnull().sum())
+
+# 6. Handle missing numerical values using Median
+df['age'] = df['age'].fillna(df['age'].median())
+df['fare'] = df['fare'].fillna(df['fare'].median())
+
+# 7. Handle missing categorical values using Mode
+df['embarked'] = df['embarked'].fillna(df['embarked'].mode()[0])
+
+# 8. Label Encoding for Sex
+le = LabelEncoder()
+df['sex'] = le.fit_transform(df['sex'])
+
+# 9. One-Hot Encoding for Embarked
+df = pd.get_dummies(df, columns=['embarked'], dtype=int)
+
+# 10. Feature Scaling using StandardScaler
+scaler = StandardScaler()
+
+columns = ['age', 'sibsp', 'parch', 'fare']
+df[columns] = scaler.fit_transform(df[columns])
+
+# 11. Display final dataset
+print("\nFinal Clean Dataset:")
+print(df.head())
+
+# 12. Check missing values after cleaning
+print("\nMissing Values After Cleaning:")
+print(df.isnull().sum())
+
+# 13. Display dataset shape
+print("\nDataset Shape:")
+print(df.shape)
+
+print("\nFeature Engineering Completed Successfully!")
