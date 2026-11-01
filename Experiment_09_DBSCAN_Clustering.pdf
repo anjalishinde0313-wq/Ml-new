@@ -1,0 +1,133 @@
+# Experiment 09: DBSCAN Clustering
+
+# 1. Fix warnings
+import os
+os.environ["OMP_NUM_THREADS"] = "1"
+
+import warnings
+warnings.filterwarnings("ignore")
+
+# 2. Import libraries
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+import seaborn as sns
+
+from sklearn.datasets import load_wine
+from sklearn.preprocessing import StandardScaler
+from sklearn.cluster import DBSCAN
+from sklearn.metrics import silhouette_score
+from sklearn.decomposition import PCA
+
+# 3. Load Wine dataset
+data = load_wine()
+
+X = data.data
+y = data.target
+
+# 4. Convert dataset into DataFrame
+df = pd.DataFrame(X, columns=data.feature_names)
+
+print("First Five Records:")
+print(df.head())
+
+# 5. Dataset Information
+print("\nDataset Information:")
+df.info()
+
+# 6. Check missing values
+print("\nMissing Values:")
+print(df.isnull().sum())
+
+print("\nDataset Shape:", df.shape)
+
+# 7. Feature Scaling
+scaler = StandardScaler()
+X_scaled = scaler.fit_transform(X)
+
+# 8. Apply DBSCAN algorithm
+dbscan = DBSCAN(
+    eps=2.2,
+    min_samples=5
+)
+
+labels = dbscan.fit_predict(X_scaled)
+
+# 9. Add cluster labels to DataFrame
+df['Cluster'] = labels
+
+print("\nDBSCAN Cluster Results:")
+print(df.head(10))
+
+# 10. Count number of clusters
+n_clusters = len(set(labels)) - (1 if -1 in labels else 0)
+
+print("\nNumber of Clusters:", n_clusters)
+
+# 11. Count noise points
+n_noise = list(labels).count(-1)
+
+print("Number of Noise Points:", n_noise)
+
+# 12. Display cluster distribution
+print("\nCluster Distribution:")
+print(df['Cluster'].value_counts().sort_index())
+
+# 13. Calculate Silhouette Score
+mask = labels != -1
+
+if len(set(labels[mask])) > 1:
+
+    score = silhouette_score(
+        X_scaled[mask],
+        labels[mask]
+    )
+
+    print("\nSilhouette Score:", round(score, 4))
+
+else:
+    print("\nSilhouette Score cannot be calculated.")
+
+# 14. Reduce dimensions using PCA
+pca = PCA(n_components=2)
+
+X_pca = pca.fit_transform(X_scaled)
+
+# 15. Visualize DBSCAN clusters
+plt.figure(figsize=(8, 5))
+
+for cluster in sorted(set(labels)):
+
+    if cluster == -1:
+        color = 'gray'
+        name = 'Noise'
+    else:
+        color = None
+        name = 'Cluster ' + str(cluster)
+
+    points = labels == cluster
+
+    plt.scatter(
+        X_pca[points, 0],
+        X_pca[points, 1],
+        label=name,
+        s=50,
+        alpha=0.7,
+        c=color
+    )
+
+plt.title("DBSCAN Clustering on Wine Dataset")
+plt.xlabel("Principal Component 1")
+plt.ylabel("Principal Component 2")
+plt.legend()
+plt.grid()
+plt.show()
+
+# 16. Final Conclusion
+print("\nConclusion:")
+print("DBSCAN Clustering completed successfully.")
+print("Number of Clusters:", n_clusters)
+print("Number of Noise Points:", n_noise)
+
+if len(set(labels[mask])) > 1:
+    print("Silhouette Score:", round(score, 4))
